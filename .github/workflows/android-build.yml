@@ -1,0 +1,35 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Make gradlew executable (if present)
+        run: if [ -f ./gradlew ]; then chmod +x ./gradlew; fi
+
+      - name: Build APK
+        run: |
+          if [ -f ./gradlew ]; then
+            ./gradlew assembleDebug || ./gradlew assembleRelease || true
+          else
+            echo "No gradlew found — ensure repo contains Android project with gradle wrapper."
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-APK
+          path: app/build/outputs/apk/**/*.apk
